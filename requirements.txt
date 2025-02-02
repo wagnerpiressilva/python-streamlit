@@ -6,3 +6,4 @@ numerize
 ollama
 openai
 correpy
+openpyxl
