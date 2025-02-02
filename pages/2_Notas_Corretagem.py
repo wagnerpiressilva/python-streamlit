@@ -46,6 +46,8 @@ def main():
         try:
             # Opção para salvar o arquivo no servidor
             if st.button("Salvar arquivo"):
+                # 2. Criar o diretório se não existir
+                os.makedirs(config['Nota_Negociacao_B3']['pasta'], exist_ok=True)
                 with open(os.path.join(config['Nota_Negociacao_B3']['pasta'], uploaded_file.name), "wb") as f:
                     f.write(uploaded_file.getbuffer())
                 st.success(f"Arquivo {uploaded_file.name} salvo com sucesso!")
