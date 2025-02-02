@@ -7,15 +7,29 @@ FROM python:3.9-slim
 
 WORKDIR /app
 
+# Configurar locale pt_BR.UTF-8
+ENV LANG=pt_BR.UTF-8 \
+    LC_ALL=pt_BR.UTF-8
+
+# Instalar dependências do sistema (incluindo locales)
 RUN apt-get update && apt-get install -y \
     build-essential \
     curl \
     software-properties-common \
     git \
+    locales \
     && rm -rf /var/lib/apt/lists/*
 
+# Gerar a locale pt_BR.UTF-8
+RUN echo "pt_BR.UTF-8 UTF-8" >> /etc/locale.gen \
+&& locale-gen pt_BR.UTF-8
+
+# Clonar repositório (com invalidação de cache)
+ARG CACHEBUST=1
+RUN git clone https://github.com/wagnerpiressilva/python-streamlit.git .
+
 # Clone repository into a subdirectory and copy files to /app
-RUN git clone --branch main https://github.com/wagnerpiressilva/python-streamlit.git .
+#RUN git clone --branch main https://github.com/wagnerpiressilva/python-streamlit.git .
 
 RUN pip install --upgrade pip
 
