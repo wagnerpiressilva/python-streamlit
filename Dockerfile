@@ -1,6 +1,8 @@
-# app/Dockerfile
+# Build com e sem cache
 # docker build -t streamlit .
 # docker build --no-cache -t streamlit .
+
+# Executar a build
 # docker run -p 8501:8501 streamlit
 
 FROM python:3.9-slim
@@ -24,12 +26,11 @@ RUN apt-get update && apt-get install -y \
 RUN echo "pt_BR.UTF-8 UTF-8" >> /etc/locale.gen \
 && locale-gen pt_BR.UTF-8
 
-# Clonar repositório (com invalidação de cache)
-ARG CACHEBUST=1
-RUN git clone https://github.com/wagnerpiressilva/python-streamlit.git .
+# Invalidação de cache
+#ARG CACHEBUST=1
 
-# Clone repository into a subdirectory and copy files to /app
-#RUN git clone --branch main https://github.com/wagnerpiressilva/python-streamlit.git .
+# Clonar repositório 
+RUN git clone https://github.com/wagnerpiressilva/python-streamlit.git .
 
 RUN pip install --upgrade pip
 
