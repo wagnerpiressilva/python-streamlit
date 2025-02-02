@@ -1,4 +1,7 @@
 # app/Dockerfile
+# docker build -t streamlit .
+# docker run -p 8501:8501 streamlit
+
 FROM python:3.9-slim
 
 WORKDIR /app
@@ -11,11 +14,10 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Clone repository into a subdirectory and copy files to /app
-RUN git clone https://github.com/wagnerpiressilva/python-streamlit.git repo \
-    && cp -a repo/. /app \
-    && rm -rf repo
+#RUN git clone https://github.com/wagnerpiressilva/python-streamlit.git .
+RUN git clone --branch main https://github.com/wagnerpiressilva/python-streamlit.git .
 
-RUN ls -la
+#RUN ls -la
 
 RUN pip install --upgrade pip
 
