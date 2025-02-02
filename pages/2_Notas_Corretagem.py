@@ -57,16 +57,20 @@ def main():
             st.error(f"Erro ao processar o arquivo: {str(e)}")
 
     # Tabela com transações consolidadas
-    df_notas = pd.DataFrame(carrega_notas(config['Nota_Negociacao_B3']['pasta']),columns=['Data','Num','Tipo','Qtd', 'Valor','Ticker','Descrição','Arquivo'])
-    df_notas['Data'] = pd.to_datetime(df_notas['Data'], format='%Y-%m-%d')
+    try:
+        df_notas = pd.DataFrame(carrega_notas(config['Nota_Negociacao_B3']['pasta']),columns=['Data','Num','Tipo','Qtd', 'Valor','Ticker','Descrição','Arquivo'])
+        df_notas['Data'] = pd.to_datetime(df_notas['Data'], format='%Y-%m-%d')
+        
+        # Imprime tabela de notas
+        gb_options = GridOptionsBuilder()
+        gb_options = gb_options.from_dataframe(df_notas)
+        gb_options.configure_default_column(filterParams={'applyMiniFilterWhileTyping': 'true'}, filter=True, sortable=True,flex=1)
+        gb_options.configure_side_bar(defaultToolPanel='')
+        gb_options.configure_column(field='Valor',header_name='Valor',type=["numericColumn"],valueFormatter="x.toLocaleString('pt-BR',{style: 'currency', currency: 'BRL'})",width=130)
+        AgGrid(df_notas,gb_options.build())   
     
-    # Imprime tabela de notas
-    gb_options = GridOptionsBuilder()
-    gb_options = gb_options.from_dataframe(df_notas)
-    gb_options.configure_default_column(filterParams={'applyMiniFilterWhileTyping': 'true'}, filter=True, sortable=True,flex=1)
-    gb_options.configure_side_bar(defaultToolPanel='')
-    gb_options.configure_column(field='Valor',header_name='Valor',type=["numericColumn"],valueFormatter="x.toLocaleString('pt-BR',{style: 'currency', currency: 'BRL'})",width=130)
-    AgGrid(df_notas,gb_options.build())
-
+    except Exception as e:
+            st.error(f"Erro ao processar arquivos da pasta: {str(e)}")
+            
 if __name__ == '__main__':
     main()
