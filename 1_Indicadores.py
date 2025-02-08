@@ -164,7 +164,7 @@ def monta_ada_carteira(df_carteira: pd.DataFrame, df_carteira_total: pd.DataFram
     gb_options.configure_column(field="Dividendos",header_name="Dividendos",type=["numericColumn"],valueFormatter="x.toLocaleString('pt-BR',{style: 'currency', currency: 'BRL'})",width=120)
     gb_options.configure_column(field="Ult Divid",header_name="Ult Divid",type=["numericColumn"],valueFormatter="x.toLocaleString('pt-BR',{style: 'currency', currency: 'BRL'})",width=100)
     gb_options.configure_column(field="YOC",header_name="YOC",type=["numericColumn"],valueFormatter="x.toFixed(2) + '%'",width=90)
-    gb_options.configure_column(field="Vies",header_name="Vies",type=["stringColumn"],width=80)
+    gb_options.configure_column(field="Vies",header_name="Vies",type=["stringColumn"],width=80, , filter='agSetColumnFilter')
     gb_options.configure_column(field="DY",header_name="DY",type=["numericColumn"],valueFormatter="x.toFixed(2) + '%'",width=90)
     gb_options.configure_column(field="%",header_name="%",type=["numericColumn"],valueFormatter="x.toFixed(2) + '%'",width=90)
     gb_options.configure_column(field="Delta Merc/Aq",header_name="∆ Merc/Aq",type=["numericColumn"],valueFormatter="x.toFixed(2) + '%'",width=100)
