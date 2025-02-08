@@ -141,7 +141,7 @@ def monta_df_carteira(df_historico:pd.DataFrame, df_indicacoes:pd.DataFrame, df_
 
     return df_carteira, df_carteira_total
 
-def monta_ada_carteira(df_carteira: pd.DataFrame, df_carteira_total: pd.DataFrame) -> None:
+def monta_aba_carteira(df_carteira: pd.DataFrame, df_carteira_total: pd.DataFrame) -> None:
     cellstyle_percentual = JsCode("""function(params){
         if (params.value <= '85') {return{'color': '#9C0006','backgroundColor': '#FFC7CE',}}
         if ((params.value > '85') && (params.value < '100')){return {'color': '#9C5700','backgroundColor': '#FFEB9C',}}        
@@ -173,43 +173,32 @@ def monta_ada_carteira(df_carteira: pd.DataFrame, df_carteira_total: pd.DataFram
     gb_options = gb_options.build()
     AgGrid(df_carteira,gb_options,height=((df_carteira.shape[0]+3)*30), allow_unsafe_jscode=True, key='grid_carteira')
 
-def monta_aba_dividendos_mensais(df_historico: pd.DataFrame) -> None:
+def monta_aba_dividendos_compras_mensais(df_historico: pd.DataFrame, TP_Rendimento: str = 'Dividendos') -> None:
+    ''' TP_Rendimento: "Dividendos" ou "Compra" '''
     aba_barra, aba_linha, aba_tabela  = st.tabs(['Barra','Linha','Tabela'])
-
+    
+    if TP_Rendimento == 'Compra': df_historico['Valor'] = df_historico['Valor'] * -1
+    
     # Gráfico de barras e linhas
-    df_mensal = df_historico.loc[df_historico['TP Rendimento'] == 'Dividendos']
-    df_mensal = df_mensal.groupby(['MesAno'])['Valor'].sum().reset_index().set_index('MesAno')
-
+    df_mensal = df_historico.loc[df_historico['TP Rendimento'] == TP_Rendimento]
+    df_mensal = df_mensal.groupby(['MesAno'])['Valor'].sum()#.reset_index()#.set_index('MesAno')    
     aba_barra.write(px.bar(df_mensal, y='Valor', x=df_mensal.index, text_auto='.2s', labels={'Valor':'Valor em Reais'}))
     aba_linha.write(px.line(df_mensal, y='Valor', x=df_mensal.index, labels={'Valor':'Valor em Reais'}))
 
     # Tabela agrupada por Mês e Ano
-    df_dividendos_mensal = df_historico
-    df_dividendos_mensal['Ticker'] = df_dividendos_mensal['Ticker'].astype('string')
-    df_dividendos_mensal = df_dividendos_mensal.loc[df_dividendos_mensal['TP Rendimento'] == 'Dividendos']
-    df_dividendos_mensal = pd.pivot_table(df_dividendos_mensal, index='Ticker', columns='MesAno', values='Valor', aggfunc='sum')
-    df_dividendos_mensal = df_dividendos_mensal.apply(pd.to_numeric, errors='coerce').fillna(0)
-    df_dividendos_mensal['Total'] = df_dividendos_mensal.sum(axis=1)
-    aba_tabela.dataframe(df_dividendos_mensal,height=38+(35*df_dividendos_mensal.shape[0]))
-
-def monta_aba_compras_mensais(df_historico: pd.DataFrame) -> None:
-    df_historico['Valor'] = df_historico['Valor'] * -1
-    aba_barra, aba_linha, aba_tabela  = st.tabs(['Barra','Linha','Tabela'])
-    # Gráfico de barras e linhas
-    df_mensal = df_historico.loc[df_historico['TP Rendimento'] == 'Compra']
-    df_mensal = df_mensal.groupby(['MesAno'])['Valor'].sum().reset_index().set_index('MesAno')
-
-    aba_barra.write(px.bar(df_mensal, y='Valor', x=df_mensal.index, text_auto='.2s', labels={'Valor':'Valor em Reais'}))
-    aba_linha.write(px.line(df_mensal, y='Valor', x=df_mensal.index, labels={'Valor':'Valor em Reais'}))
-
-    # Tabela agrupada por Mês e Ano
-    df_dividendos_mensal = df_historico
-    df_dividendos_mensal['Ticker'] = df_dividendos_mensal['Ticker'].astype('string')
-    df_dividendos_mensal = df_dividendos_mensal.loc[df_dividendos_mensal['TP Rendimento'] == 'Compra']
-    df_dividendos_mensal = pd.pivot_table(df_dividendos_mensal, index='TP Rendimento', columns='MesAno', values='Valor', aggfunc='sum')
-    df_dividendos_mensal = df_dividendos_mensal.apply(pd.to_numeric, errors='coerce').fillna(0)
-    df_dividendos_mensal['Total'] = df_dividendos_mensal.sum(axis=1)
-    aba_tabela.dataframe(df_dividendos_mensal,height=38+(35*df_dividendos_mensal.shape[0]))
+    df_mensal = df_historico
+    df_mensal = df_mensal.loc[df_mensal['TP Rendimento'] == TP_Rendimento]
+    df_mensal = df_mensal[['Ticker','MesAno','Valor','Posicao']]    
+    gb_options = GridOptionsBuilder()
+    gb_options.configure_grid_options(pivotMode=True)
+    gb_options.configure_side_bar(defaultToolPanel='')
+    gb_options.configure_column(field="Posicao",header_name="Posição",filter='agSetColumnFilter', type=["stringColumn"],width=100, rowGroup=True, enableRowGroup=True, enableValue=False)
+    gb_options.configure_column(field="Ticker",header_name="Ticker",filter='agSetColumnFilter', type=["stringColumn"],width=100, rowGroup=True, enableRowGroup=True, enableValue=False)
+    gb_options.configure_column(field="MesAno",header_name="Mês Ano",width=100, type=["numericColumn"], enablePivot=True, pivot=True)
+    gb_options.configure_column(field="Valor",header_name="Valor",width=100, type=["numericColumn"], aggFunc='sum', enableValue=True,valueFormatter="x.toLocaleString('pt-BR',{style: 'currency', currency: 'BRL'})")    
+    gb_options = gb_options.build()
+    with aba_tabela:
+        AgGrid(df_mensal,gb_options,allow_unsafe_jscode=True, key='grid_'+TP_Rendimento)
 
 def monta_indicadores(df_carteira:pd.DataFrame, qtd_ativos: int) -> None:
     # Cria bloco com 7 indicadores
@@ -344,9 +333,9 @@ def monta_principal():
     with aba_historico:
         monta_aba_dataframe(df_historico)
     with aba_dividendos:
-        monta_aba_dividendos_mensais(df_historico)
+        monta_aba_dividendos_compras_mensais(df_historico,TP_Rendimento='Dividendos')
     with aba_compras:
-        monta_aba_compras_mensais(df_historico)
+        monta_aba_dividendos_compras_mensais(df_historico,TP_Rendimento='Compra')
     with aba_IRPF:        
         monta_aba_IRPF(df_historico)
     with aba_setorial:
@@ -356,7 +345,7 @@ def monta_principal():
         agrupamentos_multi.insert(0,px.Constant("Todos"))
         st.plotly_chart(px.treemap(df_carteira, path=agrupamentos_multi, values='Valor Mercado'))
     with aba_carteira:        
-        monta_ada_carteira(df_carteira=df_carteira, df_carteira_total=df_carteira_total)
+        monta_aba_carteira(df_carteira=df_carteira, df_carteira_total=df_carteira_total)
     with aba_juros_compostos:
         monta_aba_juros_compostos(df_carteira)
 
